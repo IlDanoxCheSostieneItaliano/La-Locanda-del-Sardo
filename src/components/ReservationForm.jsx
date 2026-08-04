@@ -25,11 +25,24 @@ const todayISO = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-// Fasce di apertura espresse in minuti dalla mezzanotte (estremi INCLUSI).
-const LUNCH_START = 11 * 60 + 30; // 11:30
-const LUNCH_END = 15 * 60; // 15:00
-const DINNER_START = 18 * 60 + 30; // 18:30
-const DINNER_END = 22 * 60 + 30; // 22:30
+// Fasce orarie di apertura per giorno (0=domenica … 6=sabato), in minuti dalla mezzanotte.
+// Gli orari sono quelli riportati su Google.
+const DAY_HOURS = [
+  { open: 11 * 60 + 30, close: 24 * 60, label: "11:30–00:00" }, // domenica
+  { open: 19 * 60, close: 24 * 60, label: "19:00–00:00" }, // lunedì
+  { open: 11 * 60 + 30, close: 24 * 60, label: "11:30–00:00" }, // martedì
+  null, // mercoledì
+  { open: 19 * 60, close: 24 * 60, label: "19:00–00:00" }, // giovedì
+  { open: 11 * 60 + 30, close: 24 * 60, label: "11:30–00:00" }, // venerdì
+  { open: 11 * 60, close: 24 * 60, label: "11:00–00:00" }, // sabato
+];
+
+const isOpenAt = (dayOfWeek, minutes) => {
+  const range = DAY_HOURS[dayOfWeek];
+  if (!range) return false;
+  if (minutes >= range.open && minutes <= range.close) return true;
+  return range.close === 24 * 60 && minutes === 0;
+};
 
 // Converte "HH:MM" (il valore dell'input time, anche su iOS Safari) in minuti
 // dalla mezzanotte. Restituisce null se il valore non è un orario valido.
@@ -43,8 +56,6 @@ const parseTimeToMinutes = (value) => {
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return hours * 60 + minutes;
 };
-
-const inRange = (minutes, from, to) => minutes >= from && minutes <= to;
 
 const WEEKDAYS = [
   "domenica",
@@ -127,14 +138,8 @@ function validate(values) {
     const minutes = parseTimeToMinutes(values.ora);
     if (minutes === null) {
       errors.ora = "Scegli un orario valido nel formato HH:MM.";
-    } else {
-      const lunch = inRange(minutes, LUNCH_START, LUNCH_END);
-      const dinner = inRange(minutes, DINNER_START, DINNER_END);
-      if (dayOfWeek === 1 && !dinner) {
-        errors.ora = "Il lunedì siamo aperti solo a cena, tra le 18:30 e le 22:30.";
-      } else if (dayOfWeek !== 1 && !lunch && !dinner) {
-        errors.ora = "Scegli un orario nelle fasce di apertura: 11:30–15:00 oppure 18:30–22:30.";
-      }
+    } else if (!isOpenAt(dayOfWeek, minutes)) {
+      errors.ora = `Scegli un orario nella fascia di apertura del ${WEEKDAYS[dayOfWeek]}: ${DAY_HOURS[dayOfWeek].label}.`;
     }
   }
 
@@ -457,7 +462,7 @@ export default function ReservationForm() {
                 label="Ora"
                 required
                 error={errors.ora}
-                hint="Pranzo 11:30–15:00 · Cena 18:30–22:30"
+                hint="Orari: lun/gio 19:00–00:00, mar/ven/dom 11:30–00:00, sab 11:00–00:00, mer chiuso"
               >
                 <input
                   id="ora"

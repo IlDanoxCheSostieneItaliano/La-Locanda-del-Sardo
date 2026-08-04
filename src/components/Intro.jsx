@@ -60,7 +60,9 @@ export default function Intro() {
               <Clock size={20} className="text-sea" aria-hidden="true" />
               <p className="mt-3 text-sm font-semibold text-olive-dark">Orari</p>
               <p className="text-sm leading-relaxed text-ink/85">
-                Lun solo cena · Mar–Dom pranzo e cena
+                Lun e gio 19:00–00:00
+                <br />
+                Mar/ven/dom 11:30–00:00 · Sab 11:00–00:00
                 <br />
                 Mercoledì chiuso
               </p>

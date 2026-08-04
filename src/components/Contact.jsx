@@ -75,7 +75,7 @@ export default function Contact() {
             <div className="mt-7 border-t border-sand pt-6">
               <p className="inline-flex items-center gap-3 text-sm font-semibold text-olive-dark">
                 <Clock size={18} className="shrink-0 text-sea" aria-hidden="true" />
-                Lunedì solo cena · Martedì–Domenica pranzo e cena · Mercoledì chiuso
+                Lun/gio 19:00–00:00 · Mar/ven/dom 11:30–00:00 · Sab 11:00–00:00 · Mer chiuso
               </p>
               <p className="mt-2 text-xs italic text-ink/55">{restaurant.hoursNote}</p>
             </div>
