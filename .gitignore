@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Vercel temp artifacts
+.vercel-tmp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

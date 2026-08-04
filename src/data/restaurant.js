@@ -26,7 +26,7 @@ export const restaurant = {
     { day: "Domenica", slots: "11:30 – 15:00 · 18:30 – 22:30" },
   ],
   hoursNote: "Orari soggetti a variazioni, verificare sui canali ufficiali",
-  heroImage: "/img/sala.jpg",
+  heroImage: `${import.meta.env.BASE_URL}img/sala.jpg`,
 };
 
 export default restaurant;
