@@ -47,7 +47,7 @@ export default function Hero() {
       </motion.div>
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/45 to-olive-dark/35"
+        className="absolute inset-0 bg-gradient-to-t from-ink/95 via-ink/70 to-olive-dark/55"
       />
 
       <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 pt-36 md:px-8 md:pb-28">
@@ -56,10 +56,16 @@ export default function Hero() {
           initial={reduce ? false : "hidden"}
           animate="show"
         >
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-sand md:text-sm">
+          <p
+            className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-sand md:text-sm"
+            style={{ textShadow: "0 1px 14px rgba(35,32,25,0.65)" }}
+          >
             Genzano di Roma · Castelli Romani
           </p>
-          <h1 className="font-display text-5xl font-bold leading-[1.08] text-cream [text-wrap:balance] sm:text-6xl md:text-7xl lg:text-8xl">
+          <h1
+            className="font-display text-5xl font-bold leading-[1.08] text-cream [text-wrap:balance] sm:text-6xl md:text-7xl lg:text-8xl"
+            style={{ textShadow: "0 2px 24px rgba(35,32,25,0.55)" }}
+          >
             {TITLE.split(" ").map((word, wi, words) => (
               <Fragment key={word}>
                 <span className="inline-block whitespace-nowrap">
@@ -76,6 +82,7 @@ export default function Hero() {
           <motion.p
             variants={letter}
             className="mt-5 max-w-xl font-display text-xl italic text-sand md:text-2xl"
+            style={{ textShadow: "0 1px 18px rgba(35,32,25,0.55)" }}
           >
             Cucina sarda a Genzano di Roma
           </motion.p>
