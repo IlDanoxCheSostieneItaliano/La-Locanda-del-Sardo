@@ -38,6 +38,13 @@ const DAY_HOURS = [
 ];
 
 const isOpenAt = (dayOfWeek, minutes) => {
+  if (dayOfWeek === null || dayOfWeek === undefined) {
+    return DAY_HOURS.some((range) => {
+      if (!range) return false;
+      if (minutes >= range.open && minutes <= range.close) return true;
+      return range.close === 24 * 60 && minutes === 0;
+    });
+  }
   const range = DAY_HOURS[dayOfWeek];
   if (!range) return false;
   if (minutes >= range.open && minutes <= range.close) return true;
@@ -55,6 +62,19 @@ const parseTimeToMinutes = (value) => {
   if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return hours * 60 + minutes;
+};
+
+const getTimeBounds = (dayOfWeek) => {
+  if (dayOfWeek !== null && DAY_HOURS[dayOfWeek]) {
+    const openMins = DAY_HOURS[dayOfWeek].open;
+    const h = Math.floor(openMins / 60);
+    const m = openMins % 60;
+    return {
+      min: `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+      max: "23:59",
+    };
+  }
+  return { min: "11:00", max: "23:59" };
 };
 
 const WEEKDAYS = [
@@ -132,14 +152,28 @@ function validate(values) {
 
   if (!values.ora) {
     errors.ora = "L'orario è obbligatorio.";
-  } else if (dayOfWeek !== null && dayOfWeek !== 3) {
-    // Confronto puramente numerico: dipende SOLO dal giorno della settimana
-    // della data scelta, mai dall'ora corrente del dispositivo.
+  } else {
     const minutes = parseTimeToMinutes(values.ora);
     if (minutes === null) {
       errors.ora = "Scegli un orario valido nel formato HH:MM.";
-    } else if (!isOpenAt(dayOfWeek, minutes)) {
-      errors.ora = `Scegli un orario nella fascia di apertura del ${WEEKDAYS[dayOfWeek]}: ${DAY_HOURS[dayOfWeek].label}.`;
+    } else if (dayOfWeek === 3) {
+      errors.ora = "Il ristorante è chiuso di mercoledì.";
+    } else if (dayOfWeek !== null) {
+      if (!isOpenAt(dayOfWeek, minutes)) {
+        errors.ora = `Scegli un orario nella fascia di apertura del ${WEEKDAYS[dayOfWeek]}: ${DAY_HOURS[dayOfWeek].label}.`;
+      }
+    } else {
+      if (!isOpenAt(null, minutes)) {
+        errors.ora = "L'orario selezionato è fuori dall'orario di lavoro del ristorante (locale chiuso).";
+      }
+    }
+
+    if (!errors.ora && values.data === todayISO() && minutes !== null) {
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      if (minutes < currentMinutes) {
+        errors.ora = "L'orario scelto è già passato per oggi.";
+      }
     }
   }
 
@@ -278,8 +312,19 @@ export default function ReservationForm() {
   const [success, setSuccess] = useState({ channel: null, waUrl: null });
   const reduce = useReducedMotion();
 
-  const set = (field) => (e) =>
-    setValues((v) => ({ ...v, [field]: e.target.value }));
+  const set = (field) => (e) => {
+    const val = e.target.value;
+    setValues((v) => {
+      const next = { ...v, [field]: val };
+      if (Object.keys(errors).length > 0) {
+        setErrors(validate(next));
+      }
+      return next;
+    });
+  };
+
+  const dayOfWeekForTime = values.data ? getWeekdayFromDate(values.data) : null;
+  const timeBounds = getTimeBounds(dayOfWeekForTime);
 
   const inputCls = (field) =>
     `w-full rounded-soft border bg-white px-4 py-2.5 text-ink placeholder:text-ink/35 ${
@@ -468,6 +513,8 @@ export default function ReservationForm() {
                   id="ora"
                   name="ora"
                   type="time"
+                  min={timeBounds.min}
+                  max={timeBounds.max}
                   value={values.ora}
                   onChange={set("ora")}
                   className={inputCls("ora")}
