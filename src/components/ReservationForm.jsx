@@ -25,7 +25,26 @@ const todayISO = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-const inRange = (time, from, to) => time >= from && time <= to;
+// Fasce di apertura espresse in minuti dalla mezzanotte (estremi INCLUSI).
+const LUNCH_START = 11 * 60 + 30; // 11:30
+const LUNCH_END = 15 * 60; // 15:00
+const DINNER_START = 18 * 60 + 30; // 18:30
+const DINNER_END = 22 * 60 + 30; // 22:30
+
+// Converte "HH:MM" (il valore dell'input time, anche su iOS Safari) in minuti
+// dalla mezzanotte. Restituisce null se il valore non è un orario valido.
+const parseTimeToMinutes = (value) => {
+  if (typeof value !== "string") return null;
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+  return hours * 60 + minutes;
+};
+
+const inRange = (minutes, from, to) => minutes >= from && minutes <= to;
 
 const WEEKDAYS = [
   "domenica",
@@ -95,12 +114,19 @@ function validate(values) {
   if (!values.ora) {
     errors.ora = "L'orario è obbligatorio.";
   } else if (dayOfWeek !== null && dayOfWeek !== 3) {
-    const dinner = inRange(values.ora, "18:30", "22:30");
-    const lunch = inRange(values.ora, "11:30", "15:00");
-    if (dayOfWeek === 1 && !dinner) {
-      errors.ora = "Il lunedì siamo aperti solo a cena, tra le 18:30 e le 22:30.";
-    } else if (dayOfWeek !== 1 && !lunch && !dinner) {
-      errors.ora = "Scegli un orario nelle fasce di apertura: 11:30–15:00 oppure 18:30–22:30.";
+    // Confronto puramente numerico: dipende SOLO dal giorno della settimana
+    // della data scelta, mai dall'ora corrente del dispositivo.
+    const minutes = parseTimeToMinutes(values.ora);
+    if (minutes === null) {
+      errors.ora = "Scegli un orario valido nel formato HH:MM.";
+    } else {
+      const lunch = inRange(minutes, LUNCH_START, LUNCH_END);
+      const dinner = inRange(minutes, DINNER_START, DINNER_END);
+      if (dayOfWeek === 1 && !dinner) {
+        errors.ora = "Il lunedì siamo aperti solo a cena, tra le 18:30 e le 22:30.";
+      } else if (dayOfWeek !== 1 && !lunch && !dinner) {
+        errors.ora = "Scegli un orario nelle fasce di apertura: 11:30–15:00 oppure 18:30–22:30.";
+      }
     }
   }
 
