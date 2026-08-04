@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Star } from "lucide-react";
 import { reviews } from "../data/reviews";
@@ -55,21 +55,79 @@ function ReviewCard({ review, fluid = false, focusable = true }) {
 }
 
 function Marquee() {
-  const [touchPaused, setTouchPaused] = useState(false);
+  const trackRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const isDraggingRef = useRef(false);
+  const dragStartX = useRef(0);
+  const scrollStart = useRef(0);
+  const resumeTimer = useRef(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || isInteracting) return;
+
+    let rafId;
+    let lastTime = performance.now();
+    const speed = 0.045;
+
+    const step = (time) => {
+      const delta = time - lastTime;
+      lastTime = time;
+      track.scrollLeft += delta * speed;
+      const half = track.scrollWidth / 2;
+      if (track.scrollLeft >= half) {
+        track.scrollLeft -= half;
+      }
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    };
+  }, [isInteracting]);
+
+  const handleStart = (clientX) => {
+    isDraggingRef.current = true;
+    setIsDragging(true);
+    setIsInteracting(true);
+    dragStartX.current = clientX;
+    scrollStart.current = trackRef.current.scrollLeft;
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+  };
+
+  const handleMove = (clientX) => {
+    if (!isDraggingRef.current) return;
+    const delta = dragStartX.current - clientX;
+    trackRef.current.scrollLeft = scrollStart.current + delta;
+  };
+
+  const handleEnd = () => {
+    isDraggingRef.current = false;
+    setIsDragging(false);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setIsInteracting(false), 1200);
+  };
 
   return (
     <div
-      className="marquee overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
-      data-paused={touchPaused || undefined}
-      onTouchStart={() => setTouchPaused(true)}
-      onTouchEnd={() => setTouchPaused(false)}
-      onTouchCancel={() => setTouchPaused(false)}
+      ref={trackRef}
+      className={`marquee-scroll flex overflow-x-auto scroll-smooth [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] ${
+        isDragging ? "cursor-grabbing select-none" : "cursor-grab"
+      }`}
+      onMouseDown={(e) => handleStart(e.clientX)}
+      onMouseMove={(e) => handleMove(e.clientX)}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
+      onTouchStart={(e) => handleStart(e.touches[0].clientX)}
+      onTouchMove={(e) => handleMove(e.touches[0].clientX)}
+      onTouchEnd={handleEnd}
+      onTouchCancel={handleEnd}
       aria-label="Recensioni degli ospiti"
     >
-      <div
-        className="marquee-track flex w-max"
-        style={{ animationDuration: `${reviews.length * 9}s` }}
-      >
+      <div className="marquee-track flex w-max">
         {[false, true].map((duplicate) => (
           <ul
             key={String(duplicate)}

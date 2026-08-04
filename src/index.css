@@ -75,6 +75,19 @@ body {
   animation-play-state: paused;
 }
 
+.marquee-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.marquee-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.marquee-scroll .marquee-track {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .marquee-track {
     animation: none;
