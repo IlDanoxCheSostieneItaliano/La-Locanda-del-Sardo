@@ -76,6 +76,8 @@ body {
 }
 
 .marquee-scroll {
+  scroll-behavior: auto;
+  overscroll-behavior-x: contain;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

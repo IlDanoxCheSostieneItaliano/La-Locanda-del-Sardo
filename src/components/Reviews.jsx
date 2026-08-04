@@ -59,9 +59,20 @@ function Marquee() {
   const [isDragging, setIsDragging] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
   const isDraggingRef = useRef(false);
+  const isAutoScrollingRef = useRef(false);
   const dragStartX = useRef(0);
   const scrollStart = useRef(0);
   const resumeTimer = useRef(null);
+
+  const pauseAutoScroll = () => {
+    setIsInteracting(true);
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+  };
+
+  const resumeAutoScroll = () => {
+    if (resumeTimer.current) clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setIsInteracting(false), 1400);
+  };
 
   useEffect(() => {
     const track = trackRef.current;
@@ -69,16 +80,18 @@ function Marquee() {
 
     let rafId;
     let lastTime = performance.now();
-    const speed = 0.045;
+    const speed = 0.04;
 
     const step = (time) => {
       const delta = time - lastTime;
       lastTime = time;
+      isAutoScrollingRef.current = true;
       track.scrollLeft += delta * speed;
       const half = track.scrollWidth / 2;
       if (track.scrollLeft >= half) {
         track.scrollLeft -= half;
       }
+      isAutoScrollingRef.current = false;
       rafId = requestAnimationFrame(step);
     };
 
@@ -89,42 +102,40 @@ function Marquee() {
     };
   }, [isInteracting]);
 
-  const handleStart = (clientX) => {
+  const handleMouseDown = (e) => {
     isDraggingRef.current = true;
     setIsDragging(true);
-    setIsInteracting(true);
-    dragStartX.current = clientX;
+    pauseAutoScroll();
+    dragStartX.current = e.clientX;
     scrollStart.current = trackRef.current.scrollLeft;
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
   };
 
-  const handleMove = (clientX) => {
+  const handleMouseMove = (e) => {
     if (!isDraggingRef.current) return;
-    const delta = dragStartX.current - clientX;
+    const delta = dragStartX.current - e.clientX;
     trackRef.current.scrollLeft = scrollStart.current + delta;
   };
 
-  const handleEnd = () => {
+  const handleMouseUp = () => {
     isDraggingRef.current = false;
     setIsDragging(false);
-    if (resumeTimer.current) clearTimeout(resumeTimer.current);
-    resumeTimer.current = setTimeout(() => setIsInteracting(false), 1200);
+    resumeAutoScroll();
   };
 
   return (
     <div
       ref={trackRef}
-      className={`marquee-scroll flex overflow-x-auto scroll-smooth [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] ${
+      className={`marquee-scroll flex overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] ${
         isDragging ? "cursor-grabbing select-none" : "cursor-grab"
       }`}
-      onMouseDown={(e) => handleStart(e.clientX)}
-      onMouseMove={(e) => handleMove(e.clientX)}
-      onMouseUp={handleEnd}
-      onMouseLeave={handleEnd}
-      onTouchStart={(e) => handleStart(e.touches[0].clientX)}
-      onTouchMove={(e) => handleMove(e.touches[0].clientX)}
-      onTouchEnd={handleEnd}
-      onTouchCancel={handleEnd}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onTouchStart={pauseAutoScroll}
+      onTouchEnd={resumeAutoScroll}
+      onTouchCancel={resumeAutoScroll}
+      onWheel={pauseAutoScroll}
       aria-label="Recensioni degli ospiti"
     >
       <div className="marquee-track flex w-max">
