@@ -96,16 +96,16 @@ export default function Menu() {
                     key={item.name}
                     className="group rounded-soft px-3 py-3.5 transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-cream/10 hover:shadow-[0_10px_28px_rgba(0,0,0,0.28)] md:px-4"
                   >
-                    <div className="flex items-baseline gap-3">
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate font-medium text-cream transition-colors group-hover:text-sand">
+                        <span className="text-[15px] font-medium leading-snug text-cream transition-colors group-hover:text-sand sm:text-base">
                           {item.name}
                         </span>
                         {item.signature && <SignatureIcon />}
                       </span>
                       <span
                         aria-hidden="true"
-                        className="mx-1 flex-1 border-b-2 border-dotted border-sand/35 transition-colors group-hover:border-sand/60"
+                        className="min-w-8 flex-1 self-center border-b-2 border-dotted border-sand/35 transition-colors group-hover:border-sand/60"
                       />
                       {item.price != null ? (
                         <span className="shrink-0 font-display text-lg text-sand">

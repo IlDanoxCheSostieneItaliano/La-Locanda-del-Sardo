@@ -27,6 +27,25 @@ const todayISO = () => {
 
 const inRange = (time, from, to) => time >= from && time <= to;
 
+const formatDateIT = (iso) => {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+};
+
+function buildWhatsAppUrl(values) {
+  const lines = [
+    `Richiesta di prenotazione — ${restaurant.name}`,
+    `Nome: ${values.nome.trim()}`,
+    `Telefono: ${values.telefono.trim()}`,
+    ...(values.email.trim() ? [`Email: ${values.email.trim()}`] : []),
+    `Data: ${formatDateIT(values.data)}`,
+    `Ora: ${values.ora}`,
+    `Persone: ${values.persone}`,
+    `Note: ${values.note.trim() || "—"}`,
+  ];
+  return `${restaurant.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
 function validate(values) {
   const errors = {};
 
@@ -103,8 +122,9 @@ function Field({ id, label, required, error, hint, children }) {
   );
 }
 
-function SuccessView({ onReset }) {
+function SuccessView({ onReset, channel, waUrl }) {
   const reduce = useReducedMotion();
+  const viaWhatsApp = channel === "whatsapp";
 
   return (
     <motion.div
@@ -141,9 +161,32 @@ function SuccessView({ onReset }) {
         />
       </svg>
       <h3 className="mt-5 font-display text-2xl font-semibold text-olive-dark">
-        Richiesta inviata!
+        {viaWhatsApp ? "Quasi fatto!" : "Richiesta inviata!"}
       </h3>
-      <p className="mt-2 text-ink/80">Ti richiameremo per confermare.</p>
+      {viaWhatsApp ? (
+        <>
+          <p className="mt-2 text-ink/80">
+            Stiamo aprendo WhatsApp con la tua richiesta già compilata: premi
+            invio per spedirla al ristorante.
+          </p>
+          {waUrl && (
+            <p className="mt-3 text-sm text-ink/65">
+              Se la finestra non si è aperta{" "}
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-myrtle underline"
+              >
+                apri WhatsApp
+              </a>
+              .
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="mt-2 text-ink/80">Ti richiameremo per confermare.</p>
+      )}
       <p className="mt-4 text-sm text-ink/65">
         Per conferme immediate puoi anche contattarci direttamente:
       </p>
@@ -177,6 +220,7 @@ export default function ReservationForm() {
   const [values, setValues] = useState(emptyValues);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle");
+  const [success, setSuccess] = useState({ channel: null, waUrl: null });
   const reduce = useReducedMotion();
 
   const set = (field) => (e) =>
@@ -195,6 +239,7 @@ export default function ReservationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (values.website.trim()) {
+      setSuccess({ channel: "whatsapp", waUrl: null });
       setStatus("success");
       return;
     }
@@ -224,11 +269,15 @@ export default function ReservationForm() {
           },
           { publicKey: VITE_EMAILJS_KEY },
         );
+        setSuccess({ channel: "email", waUrl: null });
         setStatus("success");
       } catch {
         setStatus("error");
       }
     } else {
+      const waUrl = buildWhatsAppUrl(values);
+      window.open(waUrl, "_blank", "noopener");
+      setSuccess({ channel: "whatsapp", waUrl });
       setStatus("success");
     }
   };
@@ -237,6 +286,7 @@ export default function ReservationForm() {
     setValues(emptyValues);
     setErrors({});
     setStatus("idle");
+    setSuccess({ channel: null, waUrl: null });
   };
 
   const errorList = Object.values(errors);
@@ -245,7 +295,7 @@ export default function ReservationForm() {
     <div>
       <AnimatePresence mode="wait" initial={false}>
         {status === "success" ? (
-          <SuccessView onReset={reset} />
+          <SuccessView onReset={reset} channel={success.channel} waUrl={success.waUrl} />
         ) : (
           <motion.form
             key="form"
@@ -265,7 +315,8 @@ export default function ReservationForm() {
               Prenota un tavolo
             </h3>
             <p className="mt-1.5 text-sm text-ink/65">
-              Compila il modulo: ti richiameremo per confermare la prenotazione.
+              Compila il modulo: la richiesta arriverà al ristorante su
+              WhatsApp, ti confermeremo la disponibilità al più presto.
             </p>
 
             <div aria-live="polite" className="mt-4">

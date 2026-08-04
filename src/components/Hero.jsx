@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { Star } from "lucide-react";
 import restaurant from "../data/restaurant";
@@ -59,16 +59,19 @@ export default function Hero() {
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-sand md:text-sm">
             Genzano di Roma · Castelli Romani
           </p>
-          <h1 className="font-display text-5xl font-bold leading-[1.05] text-cream md:text-7xl lg:text-8xl">
-            {TITLE.split("").map((ch, i) =>
-              ch === " " ? (
-                <span key={i}> </span>
-              ) : (
-                <motion.span key={i} variants={letter} className="inline-block">
-                  {ch}
-                </motion.span>
-              )
-            )}
+          <h1 className="font-display text-5xl font-bold leading-[1.08] text-cream [text-wrap:balance] sm:text-6xl md:text-7xl lg:text-8xl">
+            {TITLE.split(" ").map((word, wi, words) => (
+              <Fragment key={word}>
+                <span className="inline-block whitespace-nowrap">
+                  {word.split("").map((ch, i) => (
+                    <motion.span key={i} variants={letter} className="inline-block">
+                      {ch}
+                    </motion.span>
+                  ))}
+                </span>
+                {wi < words.length - 1 && " "}
+              </Fragment>
+            ))}
           </h1>
           <motion.p
             variants={letter}

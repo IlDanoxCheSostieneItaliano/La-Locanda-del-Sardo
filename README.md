@@ -1,3 +1,19 @@
+# La Locanda del Sardo
+
+Sito vetrina del ristorante La Locanda del Sardo (Genzano di Roma), built with React + Vite + Tailwind CSS and published on GitHub Pages at https://ildanoxchesostieneitaliano.github.io/La-Locanda-del-Sardo/.
+
+## Come arrivano le prenotazioni
+
+Il sito è statico, senza backend: le richieste del modulo "Prenota un tavolo" arrivano al ristorante via **WhatsApp** (+39 393 4962902). Dopo la validazione, il form apre WhatsApp con un messaggio precompilato (nome, telefono, data, ora, persone, note) che l'ospite deve solo inviare.
+
+Canale alternativo opzionale: configurando le variabili in `.env` (vedi `.env.example`) con un account gratuito [EmailJS](https://www.emailjs.com/), le richieste vengono inviate via email e hanno la precedenza su WhatsApp:
+
+```
+VITE_EMAILJS_SERVICE=...
+VITE_EMAILJS_TEMPLATE=...
+VITE_EMAILJS_KEY=...
+```
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
