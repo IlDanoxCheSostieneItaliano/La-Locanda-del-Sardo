@@ -56,9 +56,18 @@ const WEEKDAYS = [
   "sabato",
 ];
 
+// Ricava il giorno della settimana (0=domenica … 6=sabato) da una stringa
+// "YYYY-MM-DD". MAI `new Date('YYYY-MM-DD')`: su Safari/iOS viene parsata
+// come UTC e `getDay()` in timezone locale può restituire il giorno
+// precedente. Il costruttore con componenti è sempre ora locale.
+const getWeekdayFromDate = (dateStr) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d).getDay();
+};
+
 const formatDateIT = (iso) => {
   const [y, m, d] = iso.split("-").map(Number);
-  const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  const weekday = WEEKDAYS[getWeekdayFromDate(iso)];
   const mm = String(m).padStart(2, "0");
   const dd = String(d).padStart(2, "0");
   return `${weekday} ${dd}/${mm}/${y}`;
@@ -104,8 +113,7 @@ function validate(values) {
   } else if (values.data < todayISO()) {
     errors.data = "La data non può essere nel passato.";
   } else {
-    const [y, m, d] = values.data.split("-").map(Number);
-    dayOfWeek = new Date(y, m - 1, d).getDay();
+    dayOfWeek = getWeekdayFromDate(values.data);
     if (dayOfWeek === 3) {
       errors.data = "Il mercoledì siamo chiusi: scegli un altro giorno.";
     }
