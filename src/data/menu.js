@@ -36,6 +36,17 @@ export const menuCategories = [
     ],
   },
   {
+    id: "pizze",
+    label: "Pizze speciali",
+    items: [
+      { name: "Margherita", price: 6 },
+      { name: "Capricciosa", price: 7.5 },
+      { name: "Locanda", price: 8 },
+      { name: "4 Formaggi", price: 8 },
+      { name: "Bufala", price: 8 },
+    ],
+  },
+  {
     id: "dolci",
     label: "Dolci",
     items: [

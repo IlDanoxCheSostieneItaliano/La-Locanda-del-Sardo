@@ -109,7 +109,9 @@ export default function Menu() {
                       />
                       {item.price != null ? (
                         <span className="shrink-0 font-display text-lg text-sand">
-                          €{item.price}
+                          €{Number.isInteger(item.price)
+                            ? item.price
+                            : item.price.toFixed(2).replace(".", ",")}
                         </span>
                       ) : (
                         <span className="shrink-0 text-sm italic text-sand/80">

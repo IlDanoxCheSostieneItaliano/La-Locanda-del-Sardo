@@ -27,21 +27,37 @@ const todayISO = () => {
 
 const inRange = (time, from, to) => time >= from && time <= to;
 
+const WEEKDAYS = [
+  "domenica",
+  "lunedì",
+  "martedì",
+  "mercoledì",
+  "giovedì",
+  "venerdì",
+  "sabato",
+];
+
 const formatDateIT = (iso) => {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
+  const [y, m, d] = iso.split("-").map(Number);
+  const weekday = WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  const mm = String(m).padStart(2, "0");
+  const dd = String(d).padStart(2, "0");
+  return `${weekday} ${dd}/${mm}/${y}`;
 };
 
 function buildWhatsAppUrl(values) {
+  const note = values.note.trim();
   const lines = [
-    `Richiesta di prenotazione — ${restaurant.name}`,
-    `Nome: ${values.nome.trim()}`,
-    `Telefono: ${values.telefono.trim()}`,
-    ...(values.email.trim() ? [`Email: ${values.email.trim()}`] : []),
-    `Data: ${formatDateIT(values.data)}`,
-    `Ora: ${values.ora}`,
-    `Persone: ${values.persone}`,
-    `Note: ${values.note.trim() || "—"}`,
+    "🍽️ *Nuova richiesta di prenotazione*",
+    `_${restaurant.name} — Genzano di Roma_`,
+    "",
+    `👤 *Nome:* ${values.nome.trim()}`,
+    `📞 *Telefono:* ${values.telefono.trim()}`,
+    ...(values.email.trim() ? [`📧 *Email:* ${values.email.trim()}`] : []),
+    `📅 *Data:* ${formatDateIT(values.data)}`,
+    `🕗 *Ora:* ${values.ora}`,
+    `👥 *Persone:* ${values.persone}`,
+    ...(note ? ["", `📝 *Note:* ${note}`] : []),
   ];
   return `${restaurant.whatsapp}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
